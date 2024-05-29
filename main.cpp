@@ -2,24 +2,52 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <queue>
+#include <utility>
+
+bool canReach(std::vector<std::vector<char>>& grid, const std::pair<int, int> &in_start, const std::pair<int, int> &in_end) {
+    std::vector<std::vector<bool>> visited(grid.size(), std::vector<bool>(grid[0].size(), false));
+    std::queue<std::pair<int, int>> q;
+    q.push({(in_start.first - 1), (in_start.second - 1)});
+    visited[in_start.first - 1][in_start.second - 1] = true;
+
+    while (!q.empty()) {
+        auto [x, y] = q.front();
+        q.pop();
+        if (x == (in_end.first - 1) && (y == in_end.second - 1)) {
+            return true;
+        }
+
+        std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        for (auto& dir : directions) {
+            int nx = x + dir.first, ny = y + dir.second;
+            if (nx >= 0 && nx < (int)grid.size() && ny >= 0 && ny < (int)grid[0].size() &&
+                grid[nx][ny] != 'W' && !visited[nx][ny]) {
+                visited[nx][ny] = true;
+                q.push({nx, ny});
+            }
+        }
+    }
+    return false;
+}
 
 std::vector<std::vector<char>> readMapFromFile(const std::string& filename,
-                                            int& in_out_n, int& in_out_m,
-                                            int& in_out_x1,int& in_out_y1,
-                                            int& in_out_x2, int& in_out_y2) {
+                                            int& out_n, int& out_m,
+                                            std::pair<int, int> &out_start,
+                                            std::pair<int, int> &out_end) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << filename << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    file >> in_out_n >> in_out_m;
-    file >> in_out_x1 >> in_out_y1;
-    file >> in_out_x2 >> in_out_y2;
+    file >> out_n >> out_m;
+    file >> out_start.first >> out_start.second;
+    file >> out_end.first >> out_end.second;
 
-    std::vector<std::vector<char>> grid(in_out_n, std::vector<char>(in_out_m));
-    for (int i = 0; i < in_out_n; ++i) {
-        for (int j = 0; j < in_out_m; ++j) {
+    std::vector<std::vector<char>> grid(out_n, std::vector<char>(out_m));
+    for (int i = 0; i < out_n; ++i) {
+        for (int j = 0; j < out_m; ++j) {
             file >> grid[i][j];
         }
     }
@@ -49,19 +77,18 @@ void printMap(const std::vector<std::vector<char>>& grid) {
 int main() {
     int n = 0;
     int m = 0;
-    int x1 = 0;
-    int y1 = 0;
-    int x2 = 0;
-    int y2 = 0;
+    std::pair<int, int> start, end;
     
-    // std::cin >> N >> M;
-    // std::cin >> x1 >> y1;
-    // std::cin >> x2 >> y2;
+    // std::cin >> n >> m;
+    // std::cin >> start.first >> start.second;
+    // std::cin >> end.first >> end.second;
 
-    // std::vector<std::vector<char>> grid = readMap(N, M);
-    std::vector<std::vector<char>> grid = readMapFromFile("data.txt", n, m, x1, y1, x2, y2);
+    // std::vector<std::vector<char>> grid = readMap(n, m);
+    std::vector<std::vector<char>> grid = readMapFromFile("data.txt", n, m, start, end);
 
-    printMap(grid);
+    bool pathExists = canReach(grid, start, end);
+    std::cout << pathExists;
+//    printMap(grid);
 
     return 0;
 }
