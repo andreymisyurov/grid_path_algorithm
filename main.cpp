@@ -5,6 +5,34 @@
 #include <queue>
 #include <utility>
 
+int getShortWeight(const std::vector<std::vector<char>> &map, const std::pair<int, int> &in_start, const std::pair<int, int> &in_end) {
+    std::vector<std::vector<int>> weight(map.size(), std::vector<int>(map[0].size(), std::numeric_limits<int>::max()));
+    std::queue<std::pair<int, int>> q;
+    q.push({(in_start.first - 1), (in_start.second - 1)});
+    weight[in_start.first - 1][in_start.second - 1] = 0;
+    std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    while (!q.empty()) {
+        auto [x, y] = q.front();
+        q.pop();
+
+        for (auto& dir : directions) {
+            if (x == (in_end.first - 1) && (y == in_end.second - 1))
+                continue;
+            int nx = x + dir.first, ny = y + dir.second;
+            if (nx >= 0 && nx < (int)map.size() && ny >= 0 && ny < (int)map[0].size() &&
+                map[nx][ny] != 'W') {
+                int nweight = weight[x][y] + (map[nx][ny] == '.' ? 1 : 2);
+                if(nweight < weight[nx][ny]) {
+                    weight[nx][ny] = nweight;
+                    q.push({nx, ny});
+                }
+            }
+        }
+    }
+    // TODO return shortest path and shortest steps
+    return 0;
+}
+
 bool canReach(std::vector<std::vector<char>>& grid, const std::pair<int, int> &in_start, const std::pair<int, int> &in_end) {
     std::vector<std::vector<bool>> visited(grid.size(), std::vector<bool>(grid[0].size(), false));
     std::queue<std::pair<int, int>> q;
@@ -87,6 +115,7 @@ int main() {
     std::vector<std::vector<char>> grid = readMapFromFile("data.txt", n, m, start, end);
 
     bool pathExists = canReach(grid, start, end);
+    getShortWeight(grid, start, end);
     std::cout << pathExists;
 //    printMap(grid);
 
